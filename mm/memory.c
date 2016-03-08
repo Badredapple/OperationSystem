@@ -40,10 +40,10 @@ static inline void oom(void)
 __asm__("movl %%eax,%%cr3"::"a" (0))
 
 /* these are not to be changed without changing head.s etc */
-#define LOW_MEM 0x100000
+#define LOW_MEM 0x100000				//开始，才有1Mb
 #define PAGING_MEMORY (15*1024*1024)
 #define PAGING_PAGES (PAGING_MEMORY>>12)
-#define MAP_NR(addr) (((addr)-LOW_MEM)>>12)
+#define MAP_NR(addr) (((addr)-LOW_MEM)>>12)       //后升级到15Mb
 #define USED 100
 
 #define CODE_SPACE(addr) ((((addr)+4095)&~4095) < \
@@ -404,12 +404,13 @@ void mem_init(long start_mem, long end_mem)
 	HIGH_MEMORY = end_mem;
 	for (i=0 ; i<PAGING_PAGES ; i++)
 		mem_map[i] = USED;
-	i = MAP_NR(start_mem);
+	i = MAP_NR(start_mem);   			//start_mem 为6MB（加上了虚拟盘以后）
+	
 	end_mem -= start_mem;
 	end_mem >>= 12;
 	while (end_mem-->0)
 		mem_map[i++]=0;
-}
+}//这个函数是作为内存管理初始化函数  
 
 void calc_mem(void)
 {

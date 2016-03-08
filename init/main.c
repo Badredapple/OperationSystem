@@ -113,7 +113,7 @@ void main(void)		/* This really IS void, no error here. */
  	ROOT_DEV = ORIG_ROOT_DEV;
  	drive_info = DRIVE_INFO;
 	memory_end = (1<<20) + (EXT_MEM_K<<10);
-	memory_end &= 0xfffff000;
+	memory_end &= 0xfffff000;//开启以后的内存起点
 	if (memory_end > 16*1024*1024)
 		memory_end = 16*1024*1024;
 	if (memory_end > 12*1024*1024) 
@@ -122,15 +122,15 @@ void main(void)		/* This really IS void, no error here. */
 		buffer_memory_end = 2*1024*1024;
 	else
 		buffer_memory_end = 1*1024*1024;
-	main_memory_start = buffer_memory_end;
-#ifdef RAMDISK
-	main_memory_start += rd_init(main_memory_start, RAMDISK*1024);
-#endif
-	mem_init(main_memory_start,memory_end);
-	trap_init();
+	main_memory_start = buffer_memory_end;//这里是对缓冲区的划
+#ifdef RAMDISK//设置虚拟磁盘空间并且初始化
+	main_memory_start += rd_init(main_memory_start, RAMDISK*1024);//
+#endif//到这里为止，
+	mem_init(main_memory_start,memory_end);//将内存管理结构mem_map初始化。
+	trap_init();//异常中断处理类中断服务程序挂接2
 	blk_dev_init();
 	chr_dev_init();
-	tty_init();
+	tty_init();//这个是用来初始化字符设备
 	time_init();
 	sched_init();
 	buffer_init(buffer_memory_end);
