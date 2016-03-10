@@ -1,4 +1,4 @@
-#ifndef _SCHED_H
+#ifndef _SCHED_H   //这个主要是嵌入式汇编，参考trap_init的注释
 #define _SCHED_H
 
 #define NR_TASKS 64
@@ -113,10 +113,10 @@ struct task_struct {
  * your own risk!. Base=0, limit=0x9ffff (=640kB)
  */
 #define INIT_TASK \
-/* state etc */	{ 0,15,15, \
+/* state etc */	{ 0,15,15, \      //就绪态 15个时间片
 /* signals */	0,{{},},0, \
 /* ec,brk... */	0,0,0,0,0,0, \
-/* pid etc.. */	0,-1,0,0,0, \
+/* pid etc.. */	0,-1,0,0,0, \	  //进程号0
 /* uid etc */	0,0,0,0,0,0, \
 /* alarm */	0,0,0,0,0,0, \
 /* math */	0, \
@@ -128,7 +128,7 @@ struct task_struct {
 		{0x9f,0xc0f200}, \
 	}, \
 /*tss*/	{0,PAGE_SIZE+(long)&init_task,0x10,0,0,0,0,(long)&pg_dir,\
-	 0,0,0,0,0,0,0,0, \
+	 0,0,0,0,0,0,0,0, \				//eflags的值，决定了cli这类指令只能在0特权级别的时候使用
 	 0,0,0x17,0x17,0x17,0x17,0x17,0x17, \
 	 _LDT(0),0x80000000, \
 		{} \
@@ -152,8 +152,8 @@ extern void wake_up(struct task_struct ** p);
  * Entry into gdt where to find first TSS. 0-nul, 1-cs, 2-ds, 3-syscall
  * 4-TSS0, 5-LDT0, 6-TSS1 etc ...
  */
-#define FIRST_TSS_ENTRY 4
-#define FIRST_LDT_ENTRY (FIRST_TSS_ENTRY+1)
+#define FIRST_TSS_ENTRY 4   										// 这个是TSS0的入口
+#define FIRST_LDT_ENTRY (FIRST_TSS_ENTRY+1)   						// 这个是LDT0的入口
 #define _TSS(n) ((((unsigned long) n)<<4)+(FIRST_TSS_ENTRY<<3))
 #define _LDT(n) ((((unsigned long) n)<<4)+(FIRST_LDT_ENTRY<<3))
 #define ltr(n) __asm__("ltr %%ax"::"a" (_TSS(n)))

@@ -30,7 +30,7 @@ extern int end;
 extern void put_super(int);
 extern void invalidate_inodes(int);
 
-struct buffer_head * start_buffer = (struct buffer_head *) &end;
+struct buffer_head * start_buffer = (struct buffer_head *) &end;//这里定义了缓冲区的内核代码末端的地址
 struct buffer_head * hash_table[NR_HASH];
 static struct buffer_head * free_list;
 static struct task_struct * buffer_wait = NULL;
@@ -350,7 +350,7 @@ struct buffer_head * breada(int dev,int first, ...)
 
 void buffer_init(long buffer_end)
 {
-	struct buffer_head * h = start_buffer;
+	struct buffer_head * h = start_buffer;   // 这个start_buffer确定了缓冲区的起始位置
 	void * b;
 	int i;
 
@@ -358,27 +358,30 @@ void buffer_init(long buffer_end)
 		b = (void *) (640*1024);
 	else
 		b = (void *) buffer_end;
+	
+	//h,b 分别从缓冲区的低地址端和高地址端开始，每次对进buffer_head, 缓冲块各一个
+	//忽略剩余不足一对buff_head。缓冲块的空间
 	while ( (b -= BLOCK_SIZE) >= ((void *) (h+1)) ) {
 		h->b_dev = 0;
 		h->b_dirt = 0;
 		h->b_count = 0;
 		h->b_lock = 0;
 		h->b_uptodate = 0;
-		h->b_wait = NULL;
+		h->b_wait = NULL;				//这两项初始化为空，后续使用将与hash_table 挂接
 		h->b_next = NULL;
-		h->b_prev = NULL;
-		h->b_data = (char *) b;
+		h->b_prev = NULL;				//每个buff_head 关联一个缓冲块
+		h->b_data = (char *) b;			//这两项使得buff_head分别与前后buff_head 挂接。形成双向链表
 		h->b_prev_free = h-1;
 		h->b_next_free = h+1;
 		h++;
 		NR_BUFFERS++;
-		if (b == (void *) 0x100000)
+		if (b == (void *) 0x100000)			//避开 ROMBIOS&VGA
 			b = (void *) 0xA0000;
 	}
 	h--;
-	free_list = start_buffer;
-	free_list->b_prev_free = h;
-	h->b_next_free = free_list;
+	free_list = start_buffer;				//free_list指向第一个buff_head
+	free_list->b_prev_free = h;				//使得buff_head形成双向链表
+	h->b_next_free = free_list;				//清空hash_table[307]
 	for (i=0;i<NR_HASH;i++)
 		hash_table[i]=NULL;
 }	

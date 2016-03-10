@@ -45,19 +45,19 @@ __asm__ ("movw %%dx,%%ax\n\t" \
 	*((gate_addr)+1) = (((base) & 0x0000ffff)<<16) | \
 		((limit) & 0x0ffff); }
 
-#define _set_tssldt_desc(n,addr,type) \
-__asm__ ("movw $104,%1\n\t" \
-	"movw %%ax,%2\n\t" \
-	"rorl $16,%%eax\n\t" \
-	"movb %%al,%3\n\t" \
-	"movb $" type ",%4\n\t" \
-	"movb $0x00,%5\n\t" \
-	"movb %%ah,%6\n\t" \
-	"rorl $16,%%eax" \
+#define _set_tssldt_desc(n,addr,type) \      // 嵌入式汇编，参考trap_init的注释
+__asm__ ("movw $104,%1\n\t" \				 //  将104 1101000 存入描述符的第1,2字节
+	"movw %%ax,%2\n\t" \					 // 将tss 或者ldt的基地址的低16位存入描述符的第3,4字节
+	"rorl $16,%%eax\n\t" \					 //循环右移16位，将高低字互换
+	"movb %%al,%3\n\t" \					 //将互换完的的第一字节，即地址的第三字节存入第五字节
+	"movb $" type ",%4\n\t" \				 //将0x89或者0x82存入第六字节
+	"movb $0x00,%5\n\t" \					 // 将0x00存入第七字节
+	"movb %%ah,%6\n\t" \					 // 将互换完的第二字节即地址的第四字节存入第八字节
+	"rorl $16,%%eax" \						 //复原eax
 	::"a" (addr), "m" (*(n)), "m" (*(n+2)), "m" (*(n+4)), \
 	 "m" (*(n+5)), "m" (*(n+6)), "m" (*(n+7)) \
-	)
-
+	)										//"m"(*(n))  是gdt第n项描述符地址开始的内存单元
+											// n:gdt 的项值。 addr：tss或者ldt的地址。 0x89 对应tss，0x82对应ldt
 #define set_tss_desc(n,addr) _set_tssldt_desc(((char *) (n)),((int)(addr)),"0x89")
 #define set_ldt_desc(n,addr) _set_tssldt_desc(((char *) (n)),((int)(addr)),"0x82")
 

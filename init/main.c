@@ -68,19 +68,19 @@ extern long startup_time;
  * bios-listing reading. Urghh.
  */
 
-#define CMOS_READ(addr) ({ \
-outb_p(0x80|addr,0x70); \
-inb_p(0x71); \
+#define CMOS_READ(addr) ({ \								 //读取CMOS实时时钟信息
+outb_p(0x80|addr,0x70); \									 //0x80|addr读取CMOS地址。0x70写端口
+inb_p(0x71); \												 //0x71读取端口
 })
 
-#define BCD_TO_BIN(val) ((val)=((val)&15) + ((val)>>4)*10)
+#define BCD_TO_BIN(val) ((val)=((val)&15) + ((val)>>4)*10)	 //十进制转化为二进制
 
 static void time_init(void)
 {
 	struct tm time;
 
 	do {
-		time.tm_sec = CMOS_READ(0);
+		time.tm_sec = CMOS_READ(0);			//读取当前时间的秒值，下面都是一样的
 		time.tm_min = CMOS_READ(2);
 		time.tm_hour = CMOS_READ(4);
 		time.tm_mday = CMOS_READ(7);
@@ -94,7 +94,7 @@ static void time_init(void)
 	BCD_TO_BIN(time.tm_mon);
 	BCD_TO_BIN(time.tm_year);
 	time.tm_mon--;
-	startup_time = kernel_mktime(&time);
+	startup_time = kernel_mktime(&time);  //开机时间。从1970年1月1日开始计时
 }
 
 static long memory_end = 0;
@@ -113,7 +113,7 @@ void main(void)		/* This really IS void, no error here. */
  	ROOT_DEV = ORIG_ROOT_DEV;
  	drive_info = DRIVE_INFO;
 	memory_end = (1<<20) + (EXT_MEM_K<<10);
-	memory_end &= 0xfffff000;//开启以后的内存起点
+	memory_end &= 0xfffff000;									//开启以后的内存起点
 	if (memory_end > 16*1024*1024)
 		memory_end = 16*1024*1024;
 	if (memory_end > 12*1024*1024) 
@@ -122,19 +122,19 @@ void main(void)		/* This really IS void, no error here. */
 		buffer_memory_end = 2*1024*1024;
 	else
 		buffer_memory_end = 1*1024*1024;
-	main_memory_start = buffer_memory_end;//这里是对缓冲区的划
-#ifdef RAMDISK//设置虚拟磁盘空间并且初始化
+	main_memory_start = buffer_memory_end;						//这里是对缓冲区的划
+#ifdef RAMDISK													//设置虚拟磁盘空间并且初始化
 	main_memory_start += rd_init(main_memory_start, RAMDISK*1024);//
-#endif//到这里为止，
-	mem_init(main_memory_start,memory_end);//将内存管理结构mem_map初始化。
-	trap_init();//异常中断处理类中断服务程序挂接2
+#endif															//到这里为止，
+	mem_init(main_memory_start,memory_end);						//将内存管理结构mem_map初始化。
+	trap_init();												//异常中断处理类中断服务程序挂接2
 	blk_dev_init();
 	chr_dev_init();
-	tty_init();//这个是用来初始化字符设备
-	time_init();
-	sched_init();
-	buffer_init(buffer_memory_end);
-	hd_init();
+	tty_init();													//这个是用来初始化字符设备
+	time_init();												//开机启动时间
+	sched_init();												//进程0启动
+	buffer_init(buffer_memory_end);    							//调用这个函数进行缓冲区的设置
+	hd_init(); 						  							//初始化硬盘的函数
 	floppy_init();
 	sti();
 	move_to_user_mode();

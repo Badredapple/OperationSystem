@@ -18,7 +18,7 @@
  * The request-struct contains all necessary data
  * to load a nr of sectors into memory
  */
-struct request request[NR_REQUEST];
+struct request request[NR_REQUEST];//这里是上面request的数组链表
 
 /*
  * used to wait on when there are no free requests
@@ -159,7 +159,7 @@ void blk_dev_init(void)
 	int i;
 
 	for (i=0 ; i<NR_REQUEST ; i++) {
-		request[i].dev = -1;
-		request[i].next = NULL;
+		request[i].dev = -1;//设置为空闲
+		request[i].next = NULL;//互不连接
 	}
 }

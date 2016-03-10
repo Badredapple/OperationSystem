@@ -106,7 +106,7 @@ void tty_init(void)
 {
 	rs_init();
 	con_init();
-}
+}//这里就是初始化字符串函数的
 
 void tty_intr(struct tty_struct * tty, int mask)
 {

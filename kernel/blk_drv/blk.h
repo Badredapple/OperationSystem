@@ -29,7 +29,7 @@ struct request {
 	char * buffer;
 	struct task_struct * waiting;
 	struct buffer_head * bh;
-	struct request * next;
+	struct request * next;//这里说明request可以构成链表
 };
 
 /*
