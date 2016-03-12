@@ -1,6 +1,6 @@
 extern int sys_setup();
 extern int sys_exit();
-extern int sys_fork();
+extern int sys_fork();						//这里对应system_cell.s中的_sys_fork，注意汇编语言到C函数上的转化。
 extern int sys_read();
 extern int sys_write();
 extern int sys_open();
@@ -71,7 +71,7 @@ extern int sys_ssetmask();
 extern int sys_setreuid();
 extern int sys_setregid();
 
-fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
+fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,       //这里使用了表，对应相对的项，比如这个就是第三项
 sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
 sys_unlink, sys_execve, sys_chdir, sys_time, sys_mknod, sys_chmod,
 sys_chown, sys_break, sys_stat, sys_lseek, sys_getpid, sys_mount,

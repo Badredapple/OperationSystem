@@ -454,7 +454,7 @@ void do_fd_request(void)
 	add_timer(ticks_to_floppy_on(current_drive),&floppy_on_interrupt);
 }
 
-void floppy_init(void)
+void floppy_init(void)				//这个是初始化软盘操作，下面的函数基本都是对软盘的操作函数
 {
 	blk_dev[MAJOR_NR].request_fn = DEVICE_REQUEST;
 	set_trap_gate(0x26,&floppy_interrupt);

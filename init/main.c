@@ -135,9 +135,9 @@ void main(void)		/* This really IS void, no error here. */
 	sched_init();												//进程0启动
 	buffer_init(buffer_memory_end);    							//调用这个函数进行缓冲区的设置
 	hd_init(); 						  							//初始化硬盘的函数
-	floppy_init();
-	sti();
-	move_to_user_mode();
+	floppy_init();												//初始化软盘的函数，这里的软盘也包括软盘驱动程序
+	sti();														//这里说明可以开启中断了，也就是可以开始系统调用的标志
+	move_to_user_mode();										//这里是进程的特权级从0级升级到3特权级
 	if (!fork()) {		/* we count on this going ok */
 		init();
 	}

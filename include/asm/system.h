@@ -1,15 +1,15 @@
-#define move_to_user_mode() \
-__asm__ ("movl %%esp,%%eax\n\t" \ 
-	"pushl $1f\n\t" \
-	"iret\n" \
-	"1:\tmovl $0x17,%%eax\n\t" \
-	"movw %%ax,%%ds\n\t" \
-	"movw %%ax,%%es\n\t" \
-	"movw %%ax,%%fs\n\t" \
-	"movw %%ax,%%gs" \
+#define move_to_user_mode() \					//这个是特权级别升级程序
+__asm__ ("movl %%esp,%%eax\n\t" \ 				//	模仿中断硬件压栈 顺序是ss, esp, eflags, cs, eip
+	"pushl $1f\n\t" \							//ss进栈，0x17即二进制的1011（三特权级，LDT 代码段）
+	"iret\n" \									//esp 进栈
+	"1:\tmovl $0x17,%%eax\n\t" \				//EFLAGs 进栈
+	"movw %%ax,%%ds\n\t" \						//EIP进栈
+	"movw %%ax,%%es\n\t" \						//出栈恢复现场，将特权级别由0到3
+	"movw %%ax,%%fs\n\t" \						
+	"movw %%ax,%%gs" \							//这里有问题没有书上说的整个升级过程，只有将ds,es,fs,gs.与ss一致的过程
 	:::"ax")
 
-#define sti() __asm__ ("sti"::)
+#define sti() __asm__ ("sti"::)  //可以开启中断的标志
 #define cli() __asm__ ("cli"::)
 #define nop() __asm__ ("nop"::)
 
