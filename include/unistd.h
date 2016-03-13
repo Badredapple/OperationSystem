@@ -59,7 +59,7 @@
 
 #define __NR_setup	0	/* used only by init, to get system going */
 #define __NR_exit	1
-#define __NR_fork	2
+#define __NR_fork	2			//这个就是fork的定义点
 #define __NR_read	3
 #define __NR_write	4
 #define __NR_open	5
@@ -130,7 +130,7 @@
 #define __NR_setreuid	70
 #define __NR_setregid	71
 
-#define _syscall0(type,name) \
+#define _syscall0(type,name) \			//注意看这个函数后面的，也是fork*()函数的相关
   type name(void) \
 { \
 long __res; \
@@ -208,7 +208,7 @@ int execle(const char * pathname, char * arg0, ...);
 void _exit(int status);
 //volatile void _exit(int status);
 int fcntl(int fildes, int cmd, ...);
-static int fork(void);
+static int fork(void);										//fork()作为进程调用的主要值
 int getpid(void);
 int getuid(void);
 int geteuid(void);

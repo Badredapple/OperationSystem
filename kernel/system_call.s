@@ -77,11 +77,11 @@ reschedule:
 	pushl $ret_from_sys_call
 	jmp schedule
 .align 2
-system_call:
+system_call:       								#int  0x80----系统调用的总入口
 	cmpl $nr_system_calls-1,%eax
 	ja bad_sys_call
-	push %ds
-	push %es
+	push %ds									#下面6个push都是为了给copy_process()的参数
+	push %es									#这里不只有压栈的顺序，前面还有int 0x80上面还有5个寄存器的值进栈。
 	push %fs
 	pushl %edx
 	pushl %ecx		# push %ebx,%ecx,%edx as parameters
@@ -91,7 +91,7 @@ system_call:
 	mov %dx,%es
 	movl $0x17,%edx		# fs points to local data space
 	mov %dx,%fs
-	call *sys_call_table(,%eax,4)
+	call *sys_call_table(,%eax,4)				#eax为2，可以看做call(_sys_call_table+2x4),这里就是_sys_fork的入口
 	pushl %eax
 	movl current,%eax
 	cmpl $0,state(%eax)		# state
@@ -205,7 +205,7 @@ sys_execve:
 	ret
 
 .align 2
-sys_fork:
+sys_fork:										#sys_fork函数的入口
 	call find_empty_process
 	testl %eax,%eax
 	js 1f
