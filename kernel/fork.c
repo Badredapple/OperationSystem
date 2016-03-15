@@ -71,11 +71,13 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 		long ebx,long ecx,long edx,
 		long fs,long es,long ds,
 		long eip,long cs,long eflags,long esp,long ss)
+	//上面的参数是int 0x80，system_call,sys_fork多次压栈的结果。其顺序是完全一致的
 {
 	struct task_struct *p;
 	int i;
 	struct file *f;
 
+	//在16MB内存的最高端获取一页，这里使用强制类型转换就是将这个页当成是task_union来用。
 	p = (struct task_struct *) get_free_page();
 	if (!p)
 		return -EAGAIN;
@@ -97,9 +99,9 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->tss.back_link = 0;
 	p->tss.esp0 = PAGE_SIZE + (long) p;
 	p->tss.ss0 = 0x10;
-	p->tss.eip = eip;
-	p->tss.eflags = eflags;
-	p->tss.eax = 0;
+	p->tss.eip = eip;							//重要！ 就是参数的EIP，是int 0x80压栈,指向的是：if（_res>=0)
+	p->tss.eflags = eflags;						
+	p->tss.eax = 0;								//重要！决定mian()函数中if(！fork())后面的分枝
 	p->tss.ecx = ecx;
 	p->tss.edx = edx;
 	p->tss.ebx = ebx;
@@ -113,7 +115,7 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->tss.ds = ds & 0xffff;
 	p->tss.fs = fs & 0xffff;
 	p->tss.gs = gs & 0xffff;
-	p->tss.ldt = _LDT(nr);
+	p->tss.ldt = _LDT(nr); 						//挂接子进程的LDT
 	p->tss.trace_bitmap = 0x80000000;
 	if (last_task_used_math == current)
 		__asm__("clts ; fnsave %0"::"m" (p->tss.i387));
@@ -137,16 +139,16 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	return last_pid;
 }
 
-int find_empty_process(void)
+int find_empty_process(void)					//为新创建的进程找到一个闲置的空间。这里面NR_TASK是64
 {
 	int i;
 
 	repeat:
-		if ((++last_pid)<0) last_pid=1;
-		for(i=0 ; i<NR_TASKS ; i++)
+		if ((++last_pid)<0) last_pid=1;			//如果++后面last_pid溢出，则置1
+		for(i=0 ; i<NR_TASKS ; i++)				//现在，++后面last_pid为1.找到有效的last_pid
 			if (task[i] && task[i]->pid == last_pid) goto repeat;
-	for(i=1 ; i<NR_TASKS ; i++)
+	for(i=1 ; i<NR_TASKS ; i++)					//返回第一个空闲的i
 		if (!task[i])
 			return i;
-	return -EAGAIN;
+	return -EAGAIN;								//这里EAGAIN为11
 }

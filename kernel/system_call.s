@@ -205,16 +205,16 @@ sys_execve:
 	ret
 
 .align 2
-sys_fork:										#sys_fork函数的入口
-	call find_empty_process
-	testl %eax,%eax
+sys_fork:											#sys_fork函数的入口
+	call find_empty_process							#这里调用find_empty_process()
+	testl %eax,%eax									
 	js 1f
-	push %gs
+	push %gs										#5个push也作为copy_process()的参数初始
 	pushl %esi
 	pushl %edi
 	pushl %ebp
 	pushl %eax
-	call copy_process
+	call copy_process								#调用copy_process()
 	addl $20,%esp
 1:	ret
 

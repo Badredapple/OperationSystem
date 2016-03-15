@@ -22,7 +22,7 @@
  */
 static inline fork(void) __attribute__((always_inline));
 static inline pause(void) __attribute__((always_inline));
-static inline _syscall0(int,fork)
+static inline _syscall0(int,fork)						//对应fork()函数
 static inline _syscall0(int,pause)
 static inline _syscall1(int,setup,void *,BIOS)
 static inline _syscall0(int,sync)
@@ -138,7 +138,7 @@ void main(void)		/* This really IS void, no error here. */
 	floppy_init();												//初始化软盘的函数，这里的软盘也包括软盘驱动程序
 	sti();														//这里说明可以开启中断了，也就是可以开始系统调用的标志
 	move_to_user_mode();										//这里是进程的特权级从0级升级到3特权级
-	if (!fork()) {		/* we count on this going ok */
+	if (!fork()) {		/* we count on this going ok */			//这里是进程0调用fork()函数来产生进程1
 		init();
 	}
 /*
@@ -149,7 +149,7 @@ void main(void)		/* This really IS void, no error here. */
  * task can run, and if not we return here.
  */
 	for(;;) pause();
-}
+}																//这个都是对于进程0的说明
 
 static int printf(const char *fmt, ...)
 {
