@@ -187,7 +187,7 @@ __asm__("cmpl %%ecx,current\n\t" \
 
 #define PAGE_ALIGN(n) (((n)+0xfff)&0xfffff000)
 
-#define _set_base(addr,base)  \
+#define _set_base(addr,base)  \			//这里用base 设置addr ，需要参考初始化进程0的描述符图及代码注释
 __asm__ ("push %%edx\n\t" \
 	"movw %%dx,%0\n\t" \
 	"rorl $16,%%edx\n\t" \
@@ -232,7 +232,7 @@ __asm__("movb %3,%%dh\n\t" \
 __base;})
 **/
 
-static inline unsigned long _get_base(char * addr)
+static inline unsigned long _get_base(char * addr)     //
 {
          unsigned long __base;
          __asm__("movb %3,%%dh\n\t"
@@ -248,7 +248,7 @@ static inline unsigned long _get_base(char * addr)
 
 #define get_base(ldt) _get_base( ((char *)&(ldt)) )
 
-#define get_limit(segment) ({ \
+#define get_limit(segment) ({ \							//这里获取addr段基地址，参考_set_base，和进程0的描述和代码注释
 unsigned long __limit; \
 __asm__("lsll %1,%0\n\tincl %0":"=r" (__limit):"r" (segment)); \
 __limit;})

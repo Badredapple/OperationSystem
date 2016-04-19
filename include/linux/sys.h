@@ -1,7 +1,7 @@
 extern int sys_setup();
 extern int sys_exit();
 extern int sys_fork();						//这里对应system_cell.s中的_sys_fork，注意汇编语言到C函数上的转化。
-extern int sys_read();
+extern int sys_read();						//C语言的函数转化到汇编语言就是在前面加上_
 extern int sys_write();
 extern int sys_open();
 extern int sys_close();

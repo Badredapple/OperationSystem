@@ -37,23 +37,25 @@ void verify_area(void * addr,int size)
 	}
 }
 
-int copy_mem(int nr,struct task_struct * p)
+int copy_mem(int nr,struct task_struct * p)   //这里设置子进程的代码段，数据段及创建，复制子进程的的第一个页表
 {
 	unsigned long old_data_base,new_data_base,data_limit;
 	unsigned long old_code_base,new_code_base,code_limit;
-
-	code_limit=get_limit(0x0f);
-	data_limit=get_limit(0x17);
+	
+	//取子进程的代码，数据段限制长度
+	code_limit=get_limit(0x0f);				//0x0f即1111：代码段，LDT， 3特权级别
+	data_limit=get_limit(0x17);				//0x17即10111： 数据段，LDT，3特权级
+	//获取父进程 （现在是进程0）的代码段，数据段基地址
 	old_code_base = get_base(current->ldt[1]);
 	old_data_base = get_base(current->ldt[2]);
 	if (old_data_base != old_code_base)
 		panic("We don't support separate I&D");
 	if (data_limit < code_limit)
 		panic("Bad data_limit");
-	new_data_base = new_code_base = nr * 0x4000000;
+	new_data_base = new_code_base = nr * 0x4000000;		//现在nr变成1,0x4000000是64MB
 	p->start_code = new_code_base;
-	set_base(p->ldt[1],new_code_base);
-	set_base(p->ldt[2],new_data_base);
+	set_base(p->ldt[1],new_code_base);					//设置子进程代码段基地址
+	set_base(p->ldt[2],new_data_base);					//设置子进程数据段基地址
 	if (copy_page_tables(old_data_base,new_data_base,data_limit)) {
 		printk("free_page_tables: from copy_mem\n");
 		free_page_tables(new_data_base,data_limit);
@@ -119,12 +121,12 @@ int copy_process(int nr,long ebp,long edi,long esi,long gs,long none,
 	p->tss.trace_bitmap = 0x80000000;
 	if (last_task_used_math == current)
 		__asm__("clts ; fnsave %0"::"m" (p->tss.i387));
-	if (copy_mem(nr,p)) {
-		task[nr] = NULL;
+	if (copy_mem(nr,p)) {						//前面定义了copy_mem的函数，这里设置子进程的代码段，数据段及创建，复制子进程的的第一个页表
+		task[nr] = NULL;//现在采用的模式已经不会出现这样的情况了。
 		free_page((long) p);
 		return -EAGAIN;
 	}
-	for (i=0; i<NR_OPEN;i++)
+	for (i=0; i<NR_OPEN;i++)		//下面将父进程相关文件属性的引用计数加1，表示父子进程共享文件
 		if ((f=p->filp[i]))
 			f->f_count++;
 	if (current->pwd)
